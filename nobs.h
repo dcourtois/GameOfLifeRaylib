@@ -805,7 +805,7 @@ nobs_raylib(NobsString raylib_dir, NobsString output_dir, NobsArray compile_args
 		command.count = 0;
 		nobs_array_append(&command, NOBS_COMPILER, NOBS_OUT_OBJ(glfw_o));
 #if NOBS_MACOS
-		nobs_array_append(&command, , "-x", "objective-c", "-o");
+		nobs_array_append(&command, "-x", "objective-c");
 #endif
 		nobs_array_append(&command, nobs_string_format("%s/src/rglfw.c", raylib_dir), rlib_src, glfw_inc);
 		nobs_array_merge(&command, compile_args);

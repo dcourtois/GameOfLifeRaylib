@@ -19,15 +19,15 @@ main(int argc, char ** argv)
 	FILE * config = fopen("./config.h", "w");
 	fprintf(config, "#define RAYLIB_DIR \"%s\"", argv[1]);
 	fclose(config);
+#endif
 
-	nobs_rebuild_args(argc, argv, "-DCONFIGURED");
-
-	return
-#else
 	if (nobs_file_get_last_write_time("./config.h") > nobs_file_get_last_write_time(nobs_proc_get_filename())) {
 		nobs_file_touch(__FILE__);
 	}
 
+	nobs_rebuild_args(argc, argv, "-DCONFIGURED");
+
+#ifdef CONFIGURED
 	nobs_rebuild_args(argc, argv, "-DCONFIGURED");
 
 	NobsTimePoint begin = nobs_time_get_current();
@@ -36,12 +36,21 @@ main(int argc, char ** argv)
 	nobs_file_make_dirs("./build/libs");
 
 	NobsArray arguments = { 0 };
-	// nobs_array_append(&arguments, "/Ox");
+#if NOBS_WINDOWS
+	nobs_array_append(&arguments, "/Ox");
 	// nobs_array_append(&arguments, "/Z7", "/DDEBUG");
+#else
+	nobs_array_append(&arguments, "-O2");
+	// nobs_array_append(&arguments, "-g");
+#endif
 
 	NobsArray raylib = nobs_raylib(RAYLIB_DIR, "./build/libs", arguments);
 
+#if NOBS_WINDOWS
 	nobs_array_append(&arguments, "/W4", "/wd4505");
+#else
+	nobs_array_append(&arguments, "-Wall");
+#endif
 
 	NobsArray command = { 0 };
 	nobs_array_append(&command, NOBS_COMPILER, NOBS_OUT_EXE("./build/bin/game_of_life"), "./game_of_life.c");
@@ -50,5 +59,7 @@ main(int argc, char ** argv)
 	int result = nobs_proc_run_sync(command);
 	nobs_info("Build %s in %s.\n", result ? "failed" : "succeeded", nobs_string_get_elapsed_since(begin));
 	return result;
+#else
+	return 0;
 #endif
 }
